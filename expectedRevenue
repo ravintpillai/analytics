@@ -1,0 +1,21 @@
+import getSiteDicts as sd
+
+class siteData(object):
+    def __init__(self, site):
+        self.site = site
+        self.data = Data[site]
+    def getData(self):
+        return self.Data
+    def getSite(self):
+        return self.Site
+    def expectedPercentages(self, hour):
+        previousRevTotal = 0
+        previousRevCumulativeDict = {}
+        rev = 0
+        for items in Data[getSite(self)][1]:
+            rev += Data[getSite(self)][1][items]
+            previousRevCumulativeDict[items] = rev
+        totalRev = rev
+        return previousRevCumulativeDict[hour]/totalRev
+
+        

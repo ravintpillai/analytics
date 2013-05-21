@@ -1,0 +1,134 @@
+import groundwork as gw
+import time
+import hello_analytics_api_v3_auth
+from apiclient.errors import HttpError
+from oauth2client.client import AccessTokenRefreshError
+
+class Query(object):
+    def __init__(self,number_of_date_ranges):
+        self.segments = gw.get_segments()
+        self.sites = gw.get_sites_for_query()
+        self.dates = []
+        self.service = gw.service
+        self.dim_met = gw.get_arguments()
+        self.dimensions = self.dim_met[0]
+        self.metrics = self.dim_met[1]
+        for x in range (number_of_date_ranges):
+            self.dates.append(gw.get_dates())
+    def __str__(self):
+        output_string = 'segments:'
+        for x in self.segments:
+            output_string += str(x)
+        output_string += '\n\nsites:\n'
+        for y in self.sites:
+            output_string += str(y)
+        output_string += '\n\ndates:\n' 
+        for z in self.dates:
+            output_string+=str(z.items())
+        output_string += ('\n\n'+'dimensions:'+self.dimensions+'\n\n'+'metrics:\n'+self.metrics)
+        return output_string
+    def get_segments(self):
+        return self.segments
+    def get_sites(self):
+        return self.sites
+    def get_dates(self):
+        return self.dates
+    def get_dimensions(self):
+        return self.dimensions
+    def get_metrics(self):
+        return self.metrics
+    def get_service(self):
+        return self.service()
+
+def get_results(service,profile_id,segment_id,date1,date2,dimensionString,metricString):
+    try:
+        return service.data().ga().get(
+            ids='ga:' + profile_id,
+            start_date=date1,
+            end_date=date2,
+            segment=segment_id,
+            dimensions=dimensionString,
+            metrics=metricString).execute()
+    except:
+        print "Not able to return results. Too many users requesting data"
+        return None
+
+
+def extract_arguments(query_object):
+    """"Gets Arguments From Query Object. If no Segments given, assumes all visits. If no metrics given, assumes visits"""
+    metricString = ''
+    dimensionString = ''
+    dateList = []
+    segmentList = []
+    webPropertyIdList = []
+    for x in query_object.get_sites():
+        webPropertyIdList.append(gw.site_name_to_true_webPropertyId[x])
+    for y in query_object.get_segments():
+        segmentList.append('gaid::'+str(y))
+    for z in query_object.get_dates():
+        dateList.append(z)
+    if len(segmentList)==0:
+        segmentList.append('gaid::-1')
+    dimensionString = query_object.get_dimensions()
+    metricString = query_object.get_metrics()
+    if len(metricString)==0:
+        metricString = 'ga:visits'
+    return {"metrics":metricString,
+            "dimensions":dimensionString,
+            "dates":dateList,
+            "segments":segmentList,
+            "profiles":webPropertyIdList}
+
+
+def query_to_results(query_object):
+    service = hello_analytics_api_v3_auth.initialize_service()
+    accounts = service.management().accounts().list().execute()
+    results_list = []
+    parameters = extract_arguments(query_object)
+    for site in parameters['profiles']:
+        for segment in parameters['segments']:
+            for dates in range (len(parameters['dates'])):
+                results_list.append(get_results(service,site,segment,parameters['dates'][dates]['start'],parameters['dates'][dates]['end'],parameters['dimensions'],parameters['metrics']))
+                time.sleep(0.5)
+            time.sleep(0.1)
+        time.sleep(0.1)
+    time.sleep(0.1)
+    return results_list
+
+def get_query_type():
+    return int(raw_input("How many date ranges would you like to collect data for?"))
+
+def result_summarize(result_dict):
+    try:
+        print result_dict['profileInfo']['profileName']
+        print result_dict['query']['dimensions'],result_dict['query']['metrics']
+        print result_dict['rows']
+        print result_dict['totalsForAllResults']
+        print result_dict['query']['start-date'],'-',result_dict['query']['end-date']
+        print result_dict['query']['segment']
+        print result_dict['containsSampledData']
+        print '\n\n\n'
+    except(TypeError):
+        print "Not able to collect results, due to too many users requesting data"
+
+def print_results(result_dict,query_object):
+	results_as_string = ''
+	aDimensionList = query_object.get_dimensions().split(',')
+	aMetricList = query_object.get_metrics().split(',')
+	for lists in result_dict['rows']:
+			for number in range(len(aDimensionList),len(lists)):
+				results_as_string += lists[number]+'\t'
+	print results_as_string
+
+def print_all_results(results,query_object):
+    for results_dictionary in results:
+        print_results(results_dictionary,query_object)
+        
+
+def summarize_all_results(results_list):
+    for result in results_list:
+        result_summarize(result)
+
+my_query = Query(get_query_type())
+results = query_to_results(my_query)
+summarize_all_results(results)
