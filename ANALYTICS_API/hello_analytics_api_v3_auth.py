@@ -10,7 +10,7 @@ from oauth2client.tools import run
 # Declare constants and set configuration values
 
 # The file with the OAuth 2.0 Client details for authentication and authorization.
-CLIENT_SECRETS = 'C:\\Users\\thambapillair\\Documents\\client_secrets.json'
+CLIENT_SECRETS = REDACTED
 
 # A helpful message to display if the CLIENT_SECRETS file is missing.
 MISSING_CLIENT_SECRETS_MESSAGE = '%s is missing' % CLIENT_SECRETS
