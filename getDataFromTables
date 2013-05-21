@@ -27,7 +27,7 @@ def execute_query(sql):
 
 ###
 #sql command
-sql = "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED SELECT OM.Site, SUM((OP.Qty-OP.Cancelled_Qty)*OP.Charge_Price_Per_Unit*Cu.To_GBP_Multiplier) AS Revenue, DATEPART(HOUR,OM.Order_Created) As Hour, Datepart(DAY,OM.Order_Created) as Day, DATEDIFF(DAY,'2000-01-01',OM.Order_Created), D.Day_Of_Week From Finance_Rpt.dbo.Order_Main OM (NOLOCK) INNER JOIN Finance_Rpt.dbo.Order_Product OP (NOLOCK) ON OP.Order_Number = OM.Order_Number INNER JOIN Finance_Rpt.dbo.Currency Cu (NOLOCK) ON Cu.Currency = OM.Currency INNER JOIN Sensu.dbo.Date_D D (NOLOCK) ON DATEPART(Year,D.Full_Date) = DATEPART(Year,OM.Order_Created) AND DATEPART(Month,D.Full_Date) = DATEPART(Month,OM.Order_Created) AND DATEPART(Day,D.Full_Date) = DATEPART(Day,OM.Order_Created) Where DATEDIFF(DAY,'2000-01-01',OM.Order_Created) IN (4749,4742,47435,4728,4721) GROUP BY OM.Site, Datepart(DAY,OM.Order_Created), DATEPART(HOUR,OM.Order_Created), DATEDIFF(DAY,'2000-01-01',OM.Order_Created), D.Day_Of_Week ORDER BY OM.Site, Datepart(DAY,OM.Order_Created), DATEPART(HOUR,OM.Order_Created)"
+#REDACTED
 ###
 
 
